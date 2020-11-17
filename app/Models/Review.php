@@ -9,11 +9,20 @@ class Review extends Model
 {
     use HasFactory;
     protected $table = 'reviews';
-    public $timestamps = true;
 
     protected $fillable = [
         'author',
-        'text'
+        'text',
+        'ip_address'
     ];
 
+    public function likes()
+    {
+        return $this->hasMany(Like::class);
+    }
+
+    public function getCreatedAtAttribute($value)
+    {
+        return date('d.m.Y H:i:s', strtotime($value));
+    }
 }

@@ -9,7 +9,6 @@ class Like extends Model
 {
     use HasFactory;
     protected $table = 'likes';
-    public $timestamps = true;
 
     protected $fillable = [
         'ip_address'

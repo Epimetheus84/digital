@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,6 +14,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [ReviewController::class, 'index'])->name('reviews.index');
+Route::get('/create', [ReviewController::class, 'create'])->name('reviews.create');
+Route::post('/update', [ReviewController::class, 'store'])->name('reviews.store');
+Route::get('/show/{review}', [ReviewController::class, 'show'])->name('reviews.show');
+Route::post('/like', [ReviewController::class, 'like'])->name('reviews.like');
