@@ -39,18 +39,12 @@ class ReviewController extends Controller
             $order = $columns[$request->input('order.0.column')];
             $dir = $request->input('order.0.dir');
 
-            $data = Review::query()->withCount('likes')
-                    ->groupBy('reviews.id')
-                    ->orderBy($order,$dir)->get();
+            $data = Review::filteredData($order, $dir);
 
             return Datatables::of($data)
                ->addIndexColumn()
                ->addColumn('action', function($row){
-                   return '
-                    <a class="btn btn-danger btn-sm like" href="javascript:void(0)" data-id="'.
-                       $row['id'].'"><span class="fa fa-heart"></span></a>
-                    <a class="btn btn-primary btn-sm" href="/show/'.
-                       $row['id'].'"><span class="fa fa-eye"></span></a>&nbsp;';
+                   return view('reviews.btn',['row_id'=>$row['id']])->render();
                })
                ->rawColumns(['action'])
                ->make(true);
@@ -91,7 +85,7 @@ class ReviewController extends Controller
        }
 
 
-       $validatedData['ip_address'] = $request->getClientIp();
+        $validatedData['ip_address'] = $request->getClientIp();
 
         Review::query()->create($validatedData);
 
@@ -107,8 +101,8 @@ class ReviewController extends Controller
      */
     public function show(Review $review)
     {
-        $prev = Review::query()->where('id', '<', $review->id)->max('id');
-        $next = Review::query()->where('id', '>', $review->id)->min('id');
+        $next = $review->next();
+        $prev = $review->prev();
 
         return view('reviews.show', compact(['review', 'next', 'prev']));
     }
@@ -125,10 +119,7 @@ class ReviewController extends Controller
             'id'            => 'required|exists:reviews',
         ]);
 
-        $like_exists = Like::where([
-            'review_id'  => $request->get('id'),
-            'ip_address' => $request->ip()
-        ])->count();
+        $like_exists = Like::isExists($request->get('id'), $request->ip());
 
         if ($like_exists) {
             return response()->json([
@@ -136,10 +127,7 @@ class ReviewController extends Controller
             ], 400);
         }
 
-        $like = new Like();
-        $like->review_id  = $request->id;
-        $like->ip_address = $request->ip();
-        $like->save();
+        Like::createFromRequest($request->get('id'), $request->getClientIp());
 
         return response()->json([
                 'success' => 'ok',

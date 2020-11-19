@@ -25,4 +25,20 @@ class Review extends Model
     {
         return date('d.m.Y H:i:s', strtotime($value));
     }
+
+    public function next()
+    {
+        return Review::query()->where('id', '>', $this->id)->max('id');
+    }
+
+    public function prev()
+    {
+        return Review::query()->where('id', '<', $this->id)->max('id');
+    }
+
+    public static function filteredData($order, $dir) {
+        return Review::query()->withCount('likes')
+                    ->groupBy('reviews.id')
+                    ->orderBy($order,$dir)->get();
+    }
 }
